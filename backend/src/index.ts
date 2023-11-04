@@ -17,8 +17,8 @@ interface Subscriber {
   res: Response;
 }
 
-let messages: Message[] = [];
-let subscribers: Subscriber[] = [];
+let unfetchedMessages: Message[] = [];
+let pollingSubscribers: Subscriber[] = [];
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const clientId = req.get("X-Client-ID");
@@ -33,23 +33,31 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.post("/messages", (req: Request, res: Response) => {
   const message: Message = req.body;
-  messages.push(message);
-  subscribers.forEach((subscriber) => subscriber.res.json(message));
-  subscribers = [];
+  unfetchedMessages.push(message);
+  pollingSubscribers.forEach((subscriber) => {
+    subscriber.res.json(message);
+    unfetchedMessages = unfetchedMessages.filter(
+      (persistedMessage) => persistedMessage !== message
+    );
+  });
+  pollingSubscribers = [];
   res.status(204).end();
 });
 
 app.get("/messages", (req: Request, res: Response) => {
-  if (messages.length > 0) {
-    res.json(messages);
-    messages = [];
+  if (unfetchedMessages.length > 0) {
+    res.json(unfetchedMessages);
+    unfetchedMessages = [];
   } else {
-    subscribers.push({ clientId: (req as LongPollRequest).clientId, res });
+    pollingSubscribers.push({
+      clientId: (req as LongPollRequest).clientId,
+      res,
+    });
   }
 });
 
 app.delete("/messages", (req: Request, res: Response) => {
-  subscribers = subscribers.filter(
+  pollingSubscribers = pollingSubscribers.filter(
     (subscriber) => subscriber.clientId !== (req as LongPollRequest).clientId
   );
   res.status(204).end();
