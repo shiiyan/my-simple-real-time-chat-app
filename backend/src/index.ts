@@ -37,8 +37,10 @@ app.post("/messages", (req: Request, res: Response) => {
   const message: Message = req.body;
   unfetchedMessages.push(message);
   pollingSubscribers.forEach((subscriber) => {
-    subscriber.res.json(unfetchedMessages);
-    unfetchedMessages = [];
+    subscriber.res.json([message]);
+    unfetchedMessages = unfetchedMessages.filter(
+      (unfetchedMessages) => unfetchedMessages !== message
+    );
   });
   pollingSubscribers = [];
   res.status(204).end();

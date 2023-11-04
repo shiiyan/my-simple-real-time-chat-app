@@ -23,7 +23,6 @@ const Chat: React.FC = () => {
             ...previousMessages,
             ...response.data,
           ]);
-          console.log("setFetchedMessages");
         }
 
         fetchMessages();
