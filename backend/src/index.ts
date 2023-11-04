@@ -1,4 +1,5 @@
 import bodyParser from "body-parser";
+import { subscribe } from "diagnostics_channel";
 import express, { NextFunction, Request, Response } from "express";
 
 const app = express();
@@ -57,9 +58,15 @@ app.get("/messages", (req: Request, res: Response) => {
 });
 
 app.delete("/messages", (req: Request, res: Response) => {
-  pollingSubscribers = pollingSubscribers.filter(
-    (subscriber) => subscriber.clientId !== (req as LongPollRequest).clientId
+  const clientId = (req as LongPollRequest).clientId;
+  const index = pollingSubscribers.findIndex(
+    (subscriber) => subscriber.clientId === clientId
   );
+  if (index !== -1) {
+    pollingSubscribers[index].res.status(204).end();
+    pollingSubscribers.splice(index, 1);
+  }
+
   res.status(204).end();
 });
 
