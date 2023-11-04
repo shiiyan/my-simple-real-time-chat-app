@@ -1,8 +1,10 @@
 import bodyParser from "body-parser";
+import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 interface Message {
   text: string;
