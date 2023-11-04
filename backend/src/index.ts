@@ -1,5 +1,4 @@
 import bodyParser from "body-parser";
-import { subscribe } from "diagnostics_channel";
 import express, { NextFunction, Request, Response } from "express";
 
 const app = express();
