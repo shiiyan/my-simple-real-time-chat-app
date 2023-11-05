@@ -1,8 +1,9 @@
+import { Box, Button, Input, Text, VStack } from "@chakra-ui/react";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
 type Message = {
-  message: string;
+  text: string;
 };
 
 const Chat: React.FC = () => {
@@ -43,7 +44,7 @@ const Chat: React.FC = () => {
       await axios.post(
         "http://localhost:3000/messages",
         {
-          message: newMessage,
+          text: newMessage,
         },
         {
           headers: {
@@ -58,15 +59,28 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <div>
-      <ul>
-        {fetchedMessages.map((message, index) => (
-          <li key={index}>{message.message}</li>
-        ))}
-      </ul>
-      <input type="text" value={newMessage} onChange={handleInputChange} />
-      <button onClick={sendMessage}>Send</button>
-    </div>
+    <VStack spacing={4}>
+      {fetchedMessages.map((message, index) => (
+        <Box bg="white" p={4} rounded="md" shadow="base" key={index}>
+          <Text>{message.text}</Text>
+        </Box>
+      ))}
+
+      <Input
+        type="text"
+        value={newMessage}
+        onChange={handleInputChange}
+        placeholder="Type a message..."
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            sendMessage();
+          }
+        }}
+      />
+      <Button colorScheme="blue" mt={2} onClick={sendMessage}>
+        Send
+      </Button>
+    </VStack>
   );
 };
 
