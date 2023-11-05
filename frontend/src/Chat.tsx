@@ -1,6 +1,6 @@
 import { Box, Button, Flex, Input, Text, VStack } from "@chakra-ui/react";
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type Message = {
   clientId: string;
@@ -15,6 +15,11 @@ const isCurrentClient = (messageClientId: string) =>
 const Chat: React.FC = () => {
   const [fetchedMessages, setFetchedMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
+  const bottomOfMessages = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomOfMessages.current?.scrollIntoView({ behavior: "smooth" });
+  }, [fetchedMessages]);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -87,6 +92,7 @@ const Chat: React.FC = () => {
             </Flex>
           );
         })}
+        <div ref={bottomOfMessages} />
       </VStack>
       <Input
         type="text"
