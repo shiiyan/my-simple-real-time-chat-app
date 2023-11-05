@@ -65,33 +65,35 @@ const Chat: React.FC = () => {
   };
 
   return (
-    <VStack spacing={4}>
-      {fetchedMessages.map((message, index) => {
-        const isSentByCurrent = isCurrentClient(message.clientId);
+    <>
+      <VStack spacing={4} overflowY="auto" flex="1" mb={4}>
+        {fetchedMessages.map((message, index) => {
+          const isSentByCurrent = isCurrentClient(message.clientId);
 
-        return (
-          <Flex
-            justifyContent={isSentByCurrent ? "flex-end" : "flex-start"}
-            width="100%"
-          >
-            <Box
-              bg={isSentByCurrent ? "blue.100" : "white"}
-              p={4}
-              rounded="md"
-              shadow="base"
-              key={index}
+          return (
+            <Flex
+              justifyContent={isSentByCurrent ? "flex-end" : "flex-start"}
+              width="100%"
             >
-              <Text>{message.text}</Text>
-            </Box>
-          </Flex>
-        );
-      })}
-
+              <Box
+                bg={isSentByCurrent ? "blue.100" : "white"}
+                p={2}
+                rounded="md"
+                shadow="base"
+                key={index}
+              >
+                <Text>{message.text}</Text>
+              </Box>
+            </Flex>
+          );
+        })}
+      </VStack>
       <Input
         type="text"
         value={newMessage}
         onChange={handleInputChange}
         placeholder="Type a message..."
+        bg="white"
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             sendMessage();
@@ -101,7 +103,7 @@ const Chat: React.FC = () => {
       <Button colorScheme="blue" mt={2} onClick={sendMessage}>
         Send
       </Button>
-    </VStack>
+    </>
   );
 };
 
