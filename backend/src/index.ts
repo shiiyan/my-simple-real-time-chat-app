@@ -7,6 +7,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 interface Message {
+  clientId: string;
   text: string;
 }
 
@@ -34,7 +35,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.post("/messages", (req: Request, res: Response) => {
-  const message: Message = req.body;
+  const message: Message = {
+    ...req.body,
+    clientId: (req as LongPollRequest).clientId,
+  };
   unfetchedMessages.push(message);
   pollingSubscribers.forEach((subscriber) => {
     subscriber.res.json([message]);
