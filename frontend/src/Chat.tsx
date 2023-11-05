@@ -1,10 +1,16 @@
-import { Box, Button, Input, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, Input, Text, VStack } from "@chakra-ui/react";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
 type Message = {
+  clientId: string;
   text: string;
 };
+
+const currentClientId = "3e00193e-c52d-4340-b040-7b1be9a1ef77";
+
+const isCurrentClient = (messageClientId: string) =>
+  messageClientId === currentClientId;
 
 const Chat: React.FC = () => {
   const [fetchedMessages, setFetchedMessages] = useState<Message[]>([]);
@@ -16,7 +22,7 @@ const Chat: React.FC = () => {
       try {
         const response = await axios.get("http://localhost:3000/messages", {
           headers: {
-            "X-Client-ID": "3e00193e-c52d-4340-b040-7b1be9a1ef77",
+            "X-Client-ID": currentClientId,
           },
         });
         if (response.status === 200) {
@@ -48,7 +54,7 @@ const Chat: React.FC = () => {
         },
         {
           headers: {
-            "X-Client-ID": "3e00193e-c52d-4340-b040-7b1be9a1ef77",
+            "X-Client-ID": currentClientId,
           },
         }
       );
@@ -60,11 +66,26 @@ const Chat: React.FC = () => {
 
   return (
     <VStack spacing={4}>
-      {fetchedMessages.map((message, index) => (
-        <Box bg="white" p={4} rounded="md" shadow="base" key={index}>
-          <Text>{message.text}</Text>
-        </Box>
-      ))}
+      {fetchedMessages.map((message, index) => {
+        const isSentByCurrent = isCurrentClient(message.clientId);
+
+        return (
+          <Flex
+            justifyContent={isSentByCurrent ? "flex-end" : "flex-start"}
+            width="100%"
+          >
+            <Box
+              bg={isSentByCurrent ? "blue.100" : "white"}
+              p={4}
+              rounded="md"
+              shadow="base"
+              key={index}
+            >
+              <Text>{message.text}</Text>
+            </Box>
+          </Flex>
+        );
+      })}
 
       <Input
         type="text"
