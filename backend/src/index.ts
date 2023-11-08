@@ -7,8 +7,6 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const redis = new Redis();
-
 interface Message {
   clientId: string;
   text: string;
@@ -18,13 +16,25 @@ interface LongPollRequest extends Request {
   clientId: string;
 }
 
-interface Subscriber {
+interface PollingSubscriber {
   clientId: string;
   res: Response;
 }
 
-let unfetchedMessages: Message[] = [];
-let pollingSubscribers: Subscriber[] = [];
+let pollingSubscribers: PollingSubscriber[] = [];
+
+const redisClient = new Redis();
+const messageChannel = "newMessageChannel";
+
+const redisSubscriber = new Redis();
+redisSubscriber.subscribe(messageChannel);
+redisSubscriber.on("message", (channel: string, message: string) => {
+  const parsedMessage = JSON.parse(message);
+  pollingSubscribers.forEach((pollingSubscriber: PollingSubscriber) => {
+    pollingSubscriber.res.json([parsedMessage]);
+  });
+  pollingSubscribers = [];
+});
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   const clientId = req.get("X-Client-ID");
@@ -42,30 +52,30 @@ app.post("/messages", async (req: Request, res: Response) => {
     ...req.body,
     clientId: (req as LongPollRequest).clientId,
   };
-  await redis.lpush("messages", JSON.stringify(message));
-  // pub/sub logic
-  pollingSubscribers.forEach((subscriber) => {
-    subscriber.res.json([message]);
-    unfetchedMessages = unfetchedMessages.filter(
-      (unfetchedMessages) => unfetchedMessages !== message
-    );
-  });
-  pollingSubscribers = [];
+  const messageString = JSON.stringify(message)
+  await redisClient.lpush("messages", messageString);
+  redisClient.publish(messageChannel, messageString);
   res.status(204).end();
 });
 
 app.get("/messages", async (req: Request, res: Response) => {
-  const messageStrings: string[] = await redis.lrange("messages", 0, -1);
+  const messageStrings: string[] = await redisClient.lrange("messages", 0, -1);
   const messages: Message[] = messageStrings.map((message) =>
     JSON.parse(message)
   );
   if (messages.length > 0) {
-    await redis.del("messages");
+    await redisClient.del("messages");
     res.json(messages);
   } else {
     pollingSubscribers.push({
       clientId: (req as LongPollRequest).clientId,
       res,
+    });
+
+    req.on("close", () => {
+      pollingSubscribers = pollingSubscribers.filter(
+        (sub) => sub.clientId !== (req as LongPollRequest).clientId
+      );
     });
   }
 });
