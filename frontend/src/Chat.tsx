@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 type Message = {
   clientId: string;
   text: string;
+  posted: number;
 };
 
 const currentClientId = "3e00193e-c52d-4340-b040-7b1be9a1ef77";
@@ -23,28 +24,29 @@ const Chat: React.FC = () => {
 
   useEffect(() => {
     const fetchMessages = async () => {
-      console.log("useEffect");
       try {
         const response = await axios.get("http://localhost:3000/messages", {
+          params: {
+            lastFetched: fetchedMessages[fetchedMessages.length - 1]?.posted,
+          },
           headers: {
             "X-Client-ID": currentClientId,
           },
         });
         if (response.status === 200) {
-          setFetchedMessages((previousMessages) => [
-            ...previousMessages,
-            ...response.data,
-          ]);
+          setFetchedMessages((previousMessages) => {
+            return [...previousMessages, ...response.data].sort(
+              (a: Message, b: Message) => a.posted - b.posted
+            );
+          });
         }
-
-        fetchMessages();
       } catch (error) {
         console.error("Error fetching messages", error);
       }
     };
 
     fetchMessages();
-  }, []);
+  }, [fetchedMessages]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
@@ -72,7 +74,7 @@ const Chat: React.FC = () => {
   return (
     <>
       <VStack spacing={4} overflowY="auto" flex="1" mb={4}>
-        {fetchedMessages.map((message, index) => {
+        {fetchedMessages.map((message) => {
           const isSentByCurrent = isCurrentClient(message.clientId);
 
           return (
@@ -85,7 +87,7 @@ const Chat: React.FC = () => {
                 p={2}
                 rounded="md"
                 shadow="base"
-                key={index}
+                key={message.posted}
               >
                 <Text>{message.text}</Text>
               </Box>
