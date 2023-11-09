@@ -10,6 +10,7 @@ app.use(cors());
 interface Message {
   clientId: string;
   text: string;
+  posted: number;
 }
 
 interface LongPollRequest extends Request {
@@ -25,6 +26,7 @@ let pollingSubscribers: PollingSubscriber[] = [];
 
 const redisClient = new Redis();
 const messageChannel = "newMessageChannel";
+const messageKey = "chatMessages";
 
 const redisSubscriber = new Redis();
 redisSubscriber.subscribe(messageChannel);
@@ -48,23 +50,29 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.post("/messages", async (req: Request, res: Response) => {
+  const posted = Date.now();
   const message: Message = {
     ...req.body,
     clientId: (req as LongPollRequest).clientId,
+    posted,
   };
-  const messageString = JSON.stringify(message)
-  await redisClient.lpush("messages", messageString);
+  const messageString = JSON.stringify(message);
+  await redisClient.zadd(messageKey, posted.toString(), messageString);
   redisClient.publish(messageChannel, messageString);
   res.status(204).end();
 });
 
 app.get("/messages", async (req: Request, res: Response) => {
-  const messageStrings: string[] = await redisClient.lrange("messages", 0, -1);
-  const messages: Message[] = messageStrings.map((message) =>
+  const lastFetched: string = <string>req.query.lastFetched || "-inf";
+  const messageStrings: string[] = await redisClient.zrangebyscore(
+    messageKey,
+    `(${lastFetched}`,
+    "+inf"
+  );
+  const messages: Message[] = messageStrings.map((message: string) =>
     JSON.parse(message)
   );
   if (messages.length > 0) {
-    await redisClient.del("messages");
     res.json(messages);
   } else {
     pollingSubscribers.push({
