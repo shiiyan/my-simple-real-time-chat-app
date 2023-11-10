@@ -90,13 +90,13 @@ const Chat: React.FC = () => {
             <Flex
               justifyContent={isSentByCurrent ? "flex-end" : "flex-start"}
               width="100%"
+              key={message.posted}
             >
               <Box
                 bg={isSentByCurrent ? "blue.100" : "white"}
                 p={2}
                 rounded="md"
                 shadow="base"
-                key={message.posted}
               >
                 <Text>{message.text}</Text>
               </Box>
