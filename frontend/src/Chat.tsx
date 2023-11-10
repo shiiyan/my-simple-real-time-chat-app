@@ -23,7 +23,8 @@ const Chat: React.FC = () => {
   }, [fetchedMessages]);
 
   useEffect(() => {
-    const fetchMessages = async () => {
+    const cancelTokenSource = axios.CancelToken.source();
+    const fetchMessages = async (): Promise<void> => {
       try {
         const response = await axios.get("http://localhost:3000/messages", {
           params: {
@@ -32,6 +33,7 @@ const Chat: React.FC = () => {
           headers: {
             "X-Client-ID": currentClientId,
           },
+          cancelToken: cancelTokenSource.token,
         });
         if (response.status === 200) {
           setFetchedMessages((previousMessages) => {
@@ -41,11 +43,18 @@ const Chat: React.FC = () => {
           });
         }
       } catch (error) {
-        console.error("Error fetching messages", error);
+        if (axios.isCancel(error)) {
+          console.log("Request canceled", error.message);
+        } else {
+          console.error("Error fetching messages", error);
+        }
       }
     };
 
     fetchMessages();
+    return () => {
+      cancelTokenSource.cancel("cleanup fetchMessages");
+    };
   }, [fetchedMessages]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
