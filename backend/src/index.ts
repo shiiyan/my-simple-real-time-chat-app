@@ -58,6 +58,7 @@ app.post("/messages", async (req: Request, res: Response) => {
   };
   const messageString = JSON.stringify(message);
   await redisClient.zadd(messageKey, posted.toString(), messageString);
+  redisClient.expire(messageKey, 3600 * 24); // Set TTL of 1 day
   redisClient.publish(messageChannel, messageString);
   res.status(204).end();
 });
