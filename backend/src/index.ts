@@ -2,6 +2,7 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import { Redis } from "ioredis";
+import { v4 as uuidv4 } from "uuid";
 
 const app = express();
 app.use(bodyParser.json());
@@ -26,7 +27,7 @@ let pollingSubscribers: PollingSubscriber[] = [];
 
 const redisClient = new Redis();
 const messageChannel = "newMessageChannel";
-const messageKey = "chatMessages";
+const messageKey = "messages";
 
 const redisSubscriber = new Redis();
 redisSubscriber.subscribe(messageChannel);
@@ -51,28 +52,42 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.post("/messages", async (req: Request, res: Response) => {
   const posted = Date.now();
+  const messageId: string = `${messageKey}:${uuidv4()}`;
   const message: Message = {
     ...req.body,
     clientId: (req as LongPollRequest).clientId,
     posted,
   };
   const messageString = JSON.stringify(message);
-  await redisClient.zadd(messageKey, posted.toString(), messageString);
-  redisClient.expire(messageKey, 3600 * 24); // Set TTL of 1 day
+  const expirationTime = 7 * 24 * 60 * 60;
+
+  await Promise.all([
+    redisClient.set(messageId, messageString, "EX", expirationTime),
+    redisClient.zadd(messageKey, posted.toString(), messageId),
+  ]);
+
   redisClient.publish(messageChannel, messageString);
   res.status(204).end();
 });
 
 app.get("/messages", async (req: Request, res: Response) => {
   const lastFetched: string = <string>req.query.lastFetched || "-inf";
-  const messageStrings: string[] = await redisClient.zrangebyscore(
+  const messageIds: string[] = await redisClient.zrangebyscore(
     messageKey,
     `(${lastFetched}`,
     "+inf"
   );
-  const messages: Message[] = messageStrings.map((message: string) =>
-    JSON.parse(message)
-  );
+  const messages: Message[] = (
+    await Promise.all(
+      messageIds.map((messageId: string) => redisClient.get(messageId))
+    )
+  )
+    .filter(
+      (messageString: string | null): messageString is string =>
+        messageString !== null
+    )
+    .map((messageString: string) => JSON.parse(messageString));
+
   if (messages.length > 0) {
     res.json(messages);
   } else {
