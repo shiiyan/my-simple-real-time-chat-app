@@ -55,7 +55,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.post("login", async (req: Request, res: Response) => {
+app.post("/login", async (req: Request, res: Response) => {
   const { username, password } = req.body;
   const userString = await redisClient.get(`${userKey}:${username}`);
   const user = userString ? JSON.parse(userString) : null;
