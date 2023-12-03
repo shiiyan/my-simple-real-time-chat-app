@@ -20,6 +20,12 @@ interface LongPollRequest extends Request {
   clientId: string;
 }
 
+interface AuthenticatedRequest extends LongPollRequest {
+  user: {
+    username: string;
+  };
+}
+
 interface PollingSubscriber {
   clientId: string;
   res: Response;
@@ -72,6 +78,29 @@ app.post("/login", async (req: Request, res: Response) => {
     expiresIn: "7d",
   });
   res.json({ token });
+});
+
+// validating JWT for all auth-required routes below this middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(403).json({ message: "Authorization token required" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid or expired token" });
+    }
+
+    if (!decoded || typeof decoded === "string") {
+      return res.status(403).json({ message: "Invalid token" });
+    }
+
+    (req as AuthenticatedRequest).user = { username: decoded.username };
+    next();
+  });
 });
 
 app.post("/messages", async (req: Request, res: Response) => {
