@@ -1,7 +1,9 @@
+import * as bcrypt from "bcrypt";
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import { Redis } from "ioredis";
+import * as jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 
 const app = express();
@@ -28,6 +30,9 @@ let pollingSubscribers: PollingSubscriber[] = [];
 const redisClient = new Redis();
 const messageChannel = "newMessageChannel";
 const messageKey = "messages";
+const userKey = "users";
+
+const JWT_SECRET = "my_jwt_secret";
 
 const redisSubscriber = new Redis();
 redisSubscriber.subscribe(messageChannel);
@@ -48,6 +53,25 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   (req as LongPollRequest).clientId = clientId;
   next();
+});
+
+app.post("login", async (req: Request, res: Response) => {
+  const { username, password } = req.body;
+  const userString = await redisClient.get(`${userKey}:${username}`);
+  const user = userString ? JSON.parse(userString) : null;
+  if (user === null) {
+    return res.status(401).send("Invalid credentials");
+  }
+
+  const result = await bcrypt.compare(password, user.password);
+  if (!result) {
+    return res.status(401).send("Invalid credentials");
+  }
+
+  const token = jwt.sign({ username: user.username }, JWT_SECRET, {
+    expiresIn: "7d",
+  });
+  res.json({ token });
 });
 
 app.post("/messages", async (req: Request, res: Response) => {
