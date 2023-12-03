@@ -10,12 +10,6 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-interface Message {
-  clientId: string;
-  text: string;
-  posted: number;
-}
-
 interface LongPollRequest extends Request {
   clientId: string;
 }
@@ -24,6 +18,13 @@ interface AuthenticatedRequest extends LongPollRequest {
   user: {
     username: string;
   };
+}
+
+interface Message {
+  text: string;
+  username: string;
+  clientId: string;
+  posted: number;
 }
 
 interface PollingSubscriber {
@@ -104,11 +105,14 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 });
 
 app.post("/messages", async (req: Request, res: Response) => {
+  const authenticatedReq = req as AuthenticatedRequest;
+
   const posted = Date.now();
   const messageId: string = `${messageKey}:${uuidv4()}`;
   const message: Message = {
-    ...req.body,
-    clientId: (req as LongPollRequest).clientId,
+    text: authenticatedReq.body.message,
+    username: authenticatedReq.user.username,
+    clientId: authenticatedReq.clientId,
     posted,
   };
   const messageString = JSON.stringify(message);
