@@ -1,22 +1,25 @@
 import { Box, Button, Flex, Input, Text, VStack } from "@chakra-ui/react";
 import axios from "axios";
+import { jwtDecode } from "jwt-decode";
 import { useEffect, useRef, useState } from "react";
 
 type Message = {
-  clientId: string;
   text: string;
+  username: string;
+  clientId: string;
   posted: number;
 };
 
 const currentClientId = "3e00193e-c52d-4340-b040-7b1be9a1ef77";
 
-const isCurrentClient = (messageClientId: string) =>
-  messageClientId === currentClientId;
-
 const Chat: React.FC = () => {
   const [fetchedMessages, setFetchedMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
   const bottomOfMessages = useRef<HTMLDivElement>(null);
+
+  const currentUsername = jwtDecode<{ username: string }>(
+    localStorage.getItem("token") ?? ""
+  ).username;
 
   useEffect(() => {
     bottomOfMessages.current?.scrollIntoView({ behavior: "smooth" });
@@ -32,6 +35,7 @@ const Chat: React.FC = () => {
           },
           headers: {
             "X-Client-ID": currentClientId,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           cancelToken: cancelTokenSource.token,
         });
@@ -66,11 +70,12 @@ const Chat: React.FC = () => {
       await axios.post(
         "http://localhost:3000/messages",
         {
-          text: newMessage,
+          message: newMessage,
         },
         {
           headers: {
             "X-Client-ID": currentClientId,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
@@ -84,7 +89,7 @@ const Chat: React.FC = () => {
     <>
       <VStack spacing={4} overflowY="auto" flex="1" mb={4}>
         {fetchedMessages.map((message) => {
-          const isSentByCurrent = isCurrentClient(message.clientId);
+          const isSentByCurrent = message.username === currentUsername;
 
           return (
             <Flex
