@@ -5,8 +5,8 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "./Login";
 import { ReactElement } from "react";
 
-function isAuthenticated() {
-  return false;
+function isAuthenticated(): boolean {
+  return !!localStorage.getItem("token");
 }
 
 const ProtectedRoute: React.FC<{ children: ReactElement }> = ({ children }) => {
