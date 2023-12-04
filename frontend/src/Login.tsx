@@ -76,7 +76,7 @@ function Login() {
           width="100%"
           mt={4}
           type="submit"
-          bg="blue.100"
+          colorScheme="blue"
           onClick={handleLogin}
         >
           Login
