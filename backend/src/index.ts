@@ -39,8 +39,7 @@ const messageChannel = "newMessageChannel";
 const messageKey = "messages";
 const userKey = "users";
 
-// TODO: set JWT_SECRET in env
-const JWT_SECRET = "my_jwt_secret";
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 const redisSubscriber = new Redis(process.env.REDISCLOUD_URL as string);
 redisSubscriber.subscribe(messageChannel);
