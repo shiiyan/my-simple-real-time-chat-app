@@ -30,7 +30,7 @@ const Chat: React.FC = () => {
     const cancelTokenSource = axios.CancelToken.source();
     const fetchMessages = async (): Promise<void> => {
       try {
-        const response = await axios.get("http://localhost:3000/messages", {
+        const response = await axios.get("https://my-simple-chat-app-cf090e53a84f.herokuapp.com/messages", {
           params: {
             lastFetched: fetchedMessages[fetchedMessages.length - 1]?.posted,
           },
@@ -69,7 +69,7 @@ const Chat: React.FC = () => {
   const sendMessage = async () => {
     try {
       await axios.post(
-        "http://localhost:3000/messages",
+        "https://my-simple-chat-app-cf090e53a84f.herokuapp.com/messages",
         {
           message: newMessage,
         },

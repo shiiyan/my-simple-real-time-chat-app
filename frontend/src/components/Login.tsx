@@ -23,7 +23,7 @@ function Login() {
   const handleLogin = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:3000/login",
+        "https://my-simple-chat-app-cf090e53a84f.herokuapp.com/login",
         {
           username,
           password,
