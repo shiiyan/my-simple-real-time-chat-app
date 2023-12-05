@@ -14,7 +14,7 @@ const ProtectedRoute: React.FC<{ children: ReactElement }> = ({ children }) => {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/my-simple-real-time-chat-app">
       <Flex direction="column" height="100vh" bg="gray.100" p={4}>
         <Heading as="h1" textAlign="center" mb={4}>
           Simple Chat App
