@@ -1,5 +1,4 @@
 import { Flex, Heading } from "@chakra-ui/react";
-import "./App.css";
 import Chat from "./Chat";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "./Login";
