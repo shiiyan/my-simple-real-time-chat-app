@@ -2,6 +2,9 @@
     "name": "my-simple-chat-app",
     "version": "1.0.0",
     "description": "",
+    "engines": {
+        "node": "16.17.0"
+    },
     "scripts": {
       "build": "cd backend && npm run build"
     }
