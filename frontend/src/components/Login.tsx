@@ -10,8 +10,9 @@ import {
 import axios from "axios";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { generateClientId } from "../utils/generateClientId";
 
-const currentClientId = "3e00193e-c52d-4340-b040-7b1be9a1ef77";
+const currentClientId = generateClientId();
 
 function Login() {
   const [username, setUsername] = useState("");

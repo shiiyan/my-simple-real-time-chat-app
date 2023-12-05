@@ -2,6 +2,7 @@ import { Box, Button, Flex, Input, Text, VStack } from "@chakra-ui/react";
 import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useRef, useState } from "react";
+import { generateClientId } from "../utils/generateClientId";
 
 type Message = {
   text: string;
@@ -10,7 +11,7 @@ type Message = {
   posted: number;
 };
 
-const currentClientId = "3e00193e-c52d-4340-b040-7b1be9a1ef77";
+const currentClientId = generateClientId();
 
 const Chat: React.FC = () => {
   const [fetchedMessages, setFetchedMessages] = useState<Message[]>([]);
