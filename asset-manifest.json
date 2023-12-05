@@ -1,12 +1,12 @@
 {
   "files": {
-    "main.js": "/my-simple-real-time-chat-app/static/js/main.0965626b.js",
+    "main.js": "/my-simple-real-time-chat-app/static/js/main.29a6d894.js",
     "static/js/787.9e9f4ffd.chunk.js": "/my-simple-real-time-chat-app/static/js/787.9e9f4ffd.chunk.js",
     "index.html": "/my-simple-real-time-chat-app/index.html",
-    "main.0965626b.js.map": "/my-simple-real-time-chat-app/static/js/main.0965626b.js.map",
+    "main.29a6d894.js.map": "/my-simple-real-time-chat-app/static/js/main.29a6d894.js.map",
     "787.9e9f4ffd.chunk.js.map": "/my-simple-real-time-chat-app/static/js/787.9e9f4ffd.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.0965626b.js"
+    "static/js/main.29a6d894.js"
   ]
 }
